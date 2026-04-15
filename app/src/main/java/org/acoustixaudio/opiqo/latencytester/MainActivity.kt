@@ -24,6 +24,8 @@ import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.ui.draw.scale
 import org.acoustixaudio.opiqo.latencytester.ui.theme.LocalThemeExtraColors
 import androidx.compose.runtime.*
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
@@ -80,6 +82,7 @@ fun LatencyChecksScreen(viewModel: AudioChecksViewModel, modifier: Modifier = Mo
 
     Column(modifier = modifier
         .fillMaxSize()
+        .verticalScroll(rememberScrollState())
         .padding(16.dp)) {
         Text("Audio capability checks", style = MaterialTheme.typography.titleLarge)
         Spacer(modifier = Modifier.height(12.dp))
@@ -129,8 +132,25 @@ fun LatencyChecksScreen(viewModel: AudioChecksViewModel, modifier: Modifier = Mo
                     Text("System hints", style = MaterialTheme.typography.titleMedium)
                 }
                 Spacer(modifier = Modifier.height(6.dp))
-                Text("System hint low-latency: ${state.systemLowLatency}")
-                Text("Output frames per buffer: ${state.framesPerBuffer ?: "unknown"}")
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    val iconTint by animateColorAsState(targetValue = statusColor(state.systemLowLatency))
+                    val iconScale by animateFloatAsState(targetValue = if (state.systemLowLatency == true) 1f else 0.95f)
+                    Icon(imageVector = statusIcon(state.systemLowLatency), contentDescription = null, tint = iconTint, modifier = Modifier.scale(iconScale))
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text("System hint low-latency: ${state.systemLowLatency}")
+                }
+                Spacer(modifier = Modifier.height(4.dp))
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Icon(imageVector = Icons.Default.Info, contentDescription = null)
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text("Output frames per buffer: ${state.framesPerBuffer ?: "unknown"}")
+                }
+                Spacer(modifier = Modifier.height(4.dp))
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Icon(imageVector = Icons.Default.Info, contentDescription = null)
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text("AAudio mmap policy: ${state.deviceMmapPolicy ?: "unknown"}")
+                }
             }
         }
 

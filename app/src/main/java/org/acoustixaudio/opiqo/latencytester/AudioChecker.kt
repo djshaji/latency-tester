@@ -19,6 +19,9 @@ class AudioChecker {
 
         @JvmStatic
         external fun checkProAudioJson(): String?
+
+        @JvmStatic
+        external fun getDeviceReportJson(): String?
     }
 }
 

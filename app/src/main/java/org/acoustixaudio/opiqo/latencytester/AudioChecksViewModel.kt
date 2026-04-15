@@ -30,6 +30,7 @@ data class AudioChecksUiState(
     val lowDetail: ProbeDetail? = null,
     val exclusiveDetail: ProbeDetail? = null,
     val proDetail: ProCombined? = null,
+    val deviceMmapPolicy: String? = null,
     val systemLowLatency: Boolean = false,
     val framesPerBuffer: String? = null,
     val running: Boolean = false,
@@ -103,6 +104,31 @@ class AudioChecksViewModel(application: Application) : AndroidViewModel(applicat
                 }
             }
 
+            // Device-level report (oboe + aaudio properties)
+            val deviceReport = withContext(Dispatchers.IO) {
+                withTimeoutOrNull(2000) {
+                    try {
+                        val s = AudioChecker.getDeviceReportJson()
+                        logs.append("Device report JSON: ${s ?: "(null)"}\n")
+                        s
+                    } catch (t: Throwable) {
+                        logs.append("Device report exception: $t\n")
+                        null
+                    }
+                }
+            }
+            var mmapPolicy: String? = null
+            if (deviceReport != null) {
+                try {
+                    val obj = org.json.JSONObject(deviceReport)
+                    if (obj.has("aaudio_mmap_policy")) {
+                        mmapPolicy = obj.optString("aaudio_mmap_policy")
+                    }
+                } catch (t: Throwable) {
+                    logs.append("Device report parse error: $t\n")
+                }
+            }
+
             val exclDetail = withContext(Dispatchers.IO) {
                 withTimeoutOrNull(3000) {
                     try {
@@ -145,6 +171,7 @@ class AudioChecksViewModel(application: Application) : AndroidViewModel(applicat
                 lowDetail = lowDetail,
                 exclusiveDetail = exclDetail,
                 proDetail = proDetail,
+                deviceMmapPolicy = mmapPolicy,
                 systemLowLatency = systemLow,
                 framesPerBuffer = frames,
                 running = false,
