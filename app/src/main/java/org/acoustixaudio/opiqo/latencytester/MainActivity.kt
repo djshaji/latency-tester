@@ -29,6 +29,12 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import org.acoustixaudio.opiqo.latencytester.ui.theme.LatencyTesterTheme
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.unit.dp
 
 class MainActivity : ComponentActivity() {
     private val viewModel: AudioChecksViewModel by viewModels()
@@ -38,8 +44,25 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
         setContent {
             LatencyTesterTheme {
-                Surface(modifier = Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background) {
-                    LatencyChecksScreen(viewModel = viewModel)
+                Scaffold(
+                    topBar = {
+                        Surface(
+                            tonalElevation = 3.dp,
+                            color = MaterialTheme.colorScheme.surface
+                        ) {
+                            Box(modifier = Modifier
+                                .fillMaxWidth()
+                                .height(56.dp)) {
+                                Text(
+                                    "Latency Tester",
+                                    modifier = Modifier.padding(start = 16.dp),
+                                    style = MaterialTheme.typography.titleMedium
+                                )
+                            }
+                        }
+                    }
+                ) { innerPadding ->
+                    LatencyChecksScreen(viewModel = viewModel, modifier = Modifier.padding(innerPadding))
                 }
             }
         }
@@ -47,11 +70,15 @@ class MainActivity : ComponentActivity() {
 }
 
 @Composable
-fun LatencyChecksScreen(viewModel: AudioChecksViewModel) {
+fun LatencyChecksScreen(viewModel: AudioChecksViewModel, modifier: Modifier = Modifier) {
     val state by viewModel.uiState.collectAsState()
     val context = LocalContext.current
+    // Run checks once when the screen enters composition (app start)
+    LaunchedEffect(Unit) {
+        viewModel.runChecks()
+    }
 
-    Column(modifier = Modifier
+    Column(modifier = modifier
         .fillMaxSize()
         .padding(16.dp)) {
         Text("Audio capability checks", style = MaterialTheme.typography.titleLarge)
@@ -123,7 +150,11 @@ fun LatencyChecksScreen(viewModel: AudioChecksViewModel) {
                 Spacer(modifier = Modifier.width(6.dp))
                 Text("Copy")
             }
+        }
 
+        Spacer(modifier = Modifier.height(8.dp))
+
+        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.Start) {
             OutlinedButton(onClick = { shareDiagnostics(context, state) }) {
                 Icon(imageVector = Icons.Default.Share, contentDescription = null)
                 Spacer(modifier = Modifier.width(6.dp))
